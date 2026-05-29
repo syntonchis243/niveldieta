@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>NivelDieta | Diario de calorias y macros</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand-block">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32" role="img">
+              <path d="M7 19.5c0-5.8 4.5-10.8 10.2-11.4 4.7-.5 8.8 3 8.8 7.7 0 5.2-4.3 9.8-9.8 9.8H8.8c-1 0-1.8-.8-1.8-1.8v-4.3Z" />
+              <path d="M12.4 12.5c.9 1.7 2.2 2.8 4 3.3 1.9.5 3.7.3 5.4-.6" />
+              <path d="M12 21.3h7.5" />
+            </svg>
+          </span>
+          <div>
+            <p class="eyebrow">Diario nutricional</p>
+            <h1>NivelDieta</h1>
+          </div>
+        </div>
+        <div class="date-cluster">
+          <button class="icon-button" id="prevDay" type="button" title="Dia anterior" aria-label="Dia anterior">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+          </button>
+          <label class="date-field">
+            <span>Fecha</span>
+            <input id="entryDate" type="date" />
+          </label>
+          <button class="icon-button" id="nextDay" type="button" title="Dia siguiente" aria-label="Dia siguiente">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+          </button>
+        </div>
+      </header>
+
+      <main class="dashboard">
+        <section class="summary-panel" aria-labelledby="summaryTitle">
+          <div class="summary-copy">
+            <p class="eyebrow">Resumen del dia</p>
+            <h2 id="summaryTitle"><span id="calorieTotal">0</span> kcal</h2>
+            <p id="remainingText">0 kcal restantes</p>
+          </div>
+          <div class="calorie-ring" aria-label="Progreso de calorias">
+            <svg viewBox="0 0 140 140" role="img">
+              <circle class="ring-track" cx="70" cy="70" r="54" />
+              <circle class="ring-progress" id="calorieRing" cx="70" cy="70" r="54" />
+            </svg>
+            <div>
+              <strong id="caloriePercent">0%</strong>
+              <span>objetivo</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="macro-panel" aria-label="Macros">
+          <article class="macro-meter protein">
+            <div>
+              <span>Proteina</span>
+              <strong><span id="proteinTotal">0</span>g</strong>
+            </div>
+            <div class="meter-track"><span id="proteinBar"></span></div>
+            <small id="proteinGoal">0 / 150g</small>
+          </article>
+          <article class="macro-meter carbs">
+            <div>
+              <span>Carbos</span>
+              <strong><span id="carbsTotal">0</span>g</strong>
+            </div>
+            <div class="meter-track"><span id="carbsBar"></span></div>
+            <small id="carbsGoal">0 / 220g</small>
+          </article>
+          <article class="macro-meter fat">
+            <div>
+              <span>Grasas</span>
+              <strong><span id="fatTotal">0</span>g</strong>
+            </div>
+            <div class="meter-track"><span id="fatBar"></span></div>
+            <small id="fatGoal">0 / 70g</small>
+          </article>
+        </section>
+
+        <section class="logger-panel" aria-labelledby="loggerTitle">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Registro</p>
+              <h2 id="loggerTitle">Añadir comida</h2>
+            </div>
+          </div>
+
+          <div class="meal-tabs" id="mealTabs" role="tablist" aria-label="Comida">
+            <button class="meal-tab is-active" type="button" data-meal="Desayuno">Desayuno</button>
+            <button class="meal-tab" type="button" data-meal="Comida">Comida</button>
+            <button class="meal-tab" type="button" data-meal="Cena">Cena</button>
+            <button class="meal-tab" type="button" data-meal="Snack">Snack</button>
+          </div>
+
+          <form class="add-form" id="addEntryForm">
+            <label class="field food-field">
+              <span>Alimento</span>
+              <select id="foodSelect" required></select>
+            </label>
+            <label class="field grams-field">
+              <span>Gramos</span>
+              <input id="gramsInput" type="number" min="1" max="3000" value="100" inputmode="decimal" required />
+            </label>
+            <button class="primary-button" type="submit">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+              Añadir
+            </button>
+          </form>
+
+          <div class="selected-food" id="selectedFoodCard">
+            <span class="food-dot"></span>
+            <div>
+              <strong id="selectedFoodName">Selecciona un alimento</strong>
+              <p id="selectedFoodMacros">Macros por 100g</p>
+            </div>
+          </div>
+
+          <details class="custom-food" id="customFoodDetails">
+            <summary>
+              <span>Crear alimento</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+            </summary>
+            <form class="custom-food-form" id="customFoodForm">
+              <label class="field">
+                <span>Nombre</span>
+                <input id="customName" type="text" maxlength="50" autocomplete="off" required />
+              </label>
+              <label class="field">
+                <span>Categoria</span>
+                <input id="customCategory" type="text" maxlength="32" value="Mis alimentos" required />
+              </label>
+              <label class="field">
+                <span>kcal / 100g</span>
+                <input id="customCalories" type="number" min="0" max="1000" inputmode="decimal" required />
+              </label>
+              <label class="field">
+                <span>Proteina</span>
+                <input id="customProtein" type="number" min="0" max="100" step="0.1" inputmode="decimal" required />
+              </label>
+              <label class="field">
+                <span>Carbos</span>
+                <input id="customCarbs" type="number" min="0" max="100" step="0.1" inputmode="decimal" required />
+              </label>
+              <label class="field">
+                <span>Grasas</span>
+                <input id="customFat" type="number" min="0" max="100" step="0.1" inputmode="decimal" required />
+              </label>
+              <button class="secondary-button" type="submit">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z" /><path d="M17 21v-8H7v8M7 3v5h8" /></svg>
+                Guardar alimento
+              </button>
+            </form>
+          </details>
+        </section>
+
+        <section class="log-panel" aria-labelledby="logTitle">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Diario</p>
+              <h2 id="logTitle">Comidas registradas</h2>
+            </div>
+            <button class="ghost-button" id="clearDay" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" /></svg>
+              Limpiar dia
+            </button>
+          </div>
+          <div class="entry-list" id="entryList"></div>
+        </section>
+
+        <section class="goals-panel" aria-labelledby="goalsTitle">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Objetivos</p>
+              <h2 id="goalsTitle">Plan diario</h2>
+            </div>
+          </div>
+          <form class="goal-form" id="goalForm">
+            <label class="field">
+              <span>Calorias</span>
+              <input id="goalCalories" type="number" min="800" max="8000" step="10" required />
+            </label>
+            <label class="field">
+              <span>Proteina</span>
+              <input id="goalProtein" type="number" min="0" max="500" step="1" required />
+            </label>
+            <label class="field">
+              <span>Carbos</span>
+              <input id="goalCarbs" type="number" min="0" max="800" step="1" required />
+            </label>
+            <label class="field">
+              <span>Grasas</span>
+              <input id="goalFat" type="number" min="0" max="400" step="1" required />
+            </label>
+            <button class="secondary-button" type="submit">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m20 6-11 11-5-5" /></svg>
+              Actualizar
+            </button>
+          </form>
+        </section>
+      </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="app.js"></script>
+  </body>
+</html>
