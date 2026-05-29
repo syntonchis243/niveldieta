@@ -61,6 +61,7 @@ svg {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 20px;
   min-height: 88px;
   padding: 18px 20px;
@@ -135,6 +136,61 @@ h2 {
 
 .date-cluster {
   gap: 10px;
+}
+
+.auth-cluster {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.user-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  max-width: 260px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-strong);
+}
+
+.user-pill > div {
+  min-width: 0;
+}
+
+.user-pill strong,
+.user-pill span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-pill strong {
+  font-size: 0.88rem;
+}
+
+.user-pill span {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 750;
+}
+
+.user-avatar {
+  display: grid;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 999px;
+  color: #fff;
+  background: var(--blue);
+  font-size: 0.82rem;
+  font-weight: 900;
 }
 
 .date-field,
@@ -664,6 +720,21 @@ h2 {
     flex-direction: column;
   }
 
+  .auth-cluster {
+    justify-content: stretch;
+    margin-left: 0;
+  }
+
+  .auth-cluster .secondary-button,
+  .auth-cluster .ghost-button {
+    width: auto;
+  }
+
+  .user-pill {
+    flex: 1;
+    max-width: none;
+  }
+
   .date-cluster {
     justify-content: space-between;
   }
@@ -719,6 +790,11 @@ h2 {
   .secondary-button,
   .ghost-button {
     width: 100%;
+  }
+
+  .auth-cluster {
+    display: grid;
+    grid-template-columns: 1fr;
   }
 
   .panel-heading {

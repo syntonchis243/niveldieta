@@ -1,10 +1,10 @@
 # NivelDieta
 
-Aplicacion local para registrar calorias, proteina, carbohidratos y grasas por dia.
+Aplicacion web para registrar calorias, proteina, carbohidratos y grasas por dia.
 
 ## Abrir
 
-Abre `https://syntonchis243.github.io/niveldieta/` en el navegador. La informacion se guarda en `localStorage`, asi que no hace falta servidor ni instalacion.
+Abre la web publicada en GitHub Pages o sirve `index.html` desde un servidor local. Puedes usarla en modo local o entrar con Google para sincronizar los datos con Firebase.
 
 ## Incluye
 
@@ -13,3 +13,5 @@ Abre `https://syntonchis243.github.io/niveldieta/` en el navegador. La informaci
 - Alimentos personalizados.
 - Objetivos diarios editables.
 - Resumen de calorias y barras de macros.
+- Inicio de sesion con Google.
+- Sincronizacion en la nube con Cloud Firestore.

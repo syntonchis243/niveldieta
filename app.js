@@ -1,3 +1,37 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+import {
+  getAuth,
+  getRedirectResult,
+  GoogleAuthProvider,
+  onAuthStateChanged,
+  signInWithRedirect,
+  signOut
+} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import {
+  doc,
+  getDoc,
+  getFirestore,
+  onSnapshot,
+  serverTimestamp,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAG102UBx9Uoaal9TmCGBUZuge6L61mwNQ",
+  authDomain: "macropilot-26939.firebaseapp.com",
+  projectId: "macropilot-26939",
+  storageBucket: "macropilot-26939.firebasestorage.app",
+  messagingSenderId: "368892530809",
+  appId: "1:368892530809:web:4479dab797e6ae753dc4a8"
+};
+
+const firebaseApp = initializeApp(firebaseConfig);
+const auth = getAuth(firebaseApp);
+const db = getFirestore(firebaseApp);
+const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: "select_account" });
+auth.useDeviceLanguage();
+
 const DEFAULT_FOODS = [
   { id: "pollo-pechuga", name: "Pechuga de pollo", category: "Proteinas", calories: 165, protein: 31, carbs: 0, fat: 3.6 },
   { id: "huevo", name: "Huevo entero", category: "Proteinas", calories: 143, protein: 12.6, carbs: 0.7, fat: 9.5 },
@@ -41,7 +75,9 @@ const state = {
   entries: readStorage(STORAGE.entries, {}),
   goals: readStorage(STORAGE.goals, DEFAULT_GOALS),
   date: readStorage(STORAGE.date, todayKey()),
-  meal: "Desayuno"
+  meal: "Desayuno",
+  user: null,
+  syncStatus: "Entra para sincronizar"
 };
 
 const elements = {
@@ -82,8 +118,18 @@ const elements = {
   goalProtein: document.querySelector("#goalProtein"),
   goalCarbs: document.querySelector("#goalCarbs"),
   goalFat: document.querySelector("#goalFat"),
+  userAvatar: document.querySelector("#userAvatar"),
+  userName: document.querySelector("#userName"),
+  syncStatus: document.querySelector("#syncStatus"),
+  signInButton: document.querySelector("#signInButton"),
+  signOutButton: document.querySelector("#signOutButton"),
   toast: document.querySelector("#toast")
 };
+
+let toastTimer;
+let cloudSaveTimer;
+let unsubscribeCloud = null;
+let applyingCloudData = false;
 
 init();
 
@@ -93,6 +139,7 @@ function init() {
   renderFoodOptions();
   bindEvents();
   render();
+  initAuth();
 }
 
 function bindEvents() {
@@ -104,6 +151,12 @@ function bindEvents() {
 
   elements.prevDay.addEventListener("click", () => shiftDate(-1));
   elements.nextDay.addEventListener("click", () => shiftDate(1));
+
+  elements.signInButton.addEventListener("click", signInWithGoogle);
+  elements.signOutButton.addEventListener("click", async () => {
+    await signOut(auth);
+    showToast("Sesion cerrada. Sigues en modo local.");
+  });
 
   elements.mealTabs.addEventListener("click", (event) => {
     const tab = event.target.closest("[data-meal]");
@@ -151,7 +204,7 @@ function bindEvents() {
 
     if (!food.name) return;
     state.foods = [...state.foods, food].sort((a, b) => a.name.localeCompare(b.name, "es"));
-    writeStorage(STORAGE.foods, state.foods);
+    persistFoods();
     elements.customFoodForm.reset();
     elements.customCategory.value = "Mis alimentos";
     elements.customFoodDetails.open = false;
@@ -185,10 +238,91 @@ function bindEvents() {
       carbs: readNumber(elements.goalCarbs.value),
       fat: readNumber(elements.goalFat.value)
     };
-    writeStorage(STORAGE.goals, state.goals);
+    persistGoals();
     render();
     showToast("Objetivos actualizados");
   });
+}
+
+function initAuth() {
+  getRedirectResult(auth).catch((error) => {
+    console.error(error);
+    showToast("No se pudo completar el inicio de sesion.");
+  });
+
+  onAuthStateChanged(auth, async (user) => {
+    state.user = user;
+    renderAuth();
+
+    if (unsubscribeCloud) {
+      unsubscribeCloud();
+      unsubscribeCloud = null;
+    }
+
+    if (!user) {
+      setSyncStatus("Entra para sincronizar");
+      return;
+    }
+
+    await connectCloudData(user);
+  });
+}
+
+async function signInWithGoogle() {
+  setSyncStatus("Abriendo Google...");
+  try {
+    await signInWithRedirect(auth, googleProvider);
+  } catch (error) {
+    console.error(error);
+    setSyncStatus("Error de acceso");
+    showToast("No se pudo iniciar sesion con Google.");
+  }
+}
+
+async function connectCloudData(user) {
+  setSyncStatus("Conectando...");
+  const ref = userDataRef(user.uid);
+
+  try {
+    const snapshot = await getDoc(ref);
+    if (snapshot.exists()) {
+      applyCloudData(snapshot.data());
+    } else {
+      await saveCloudDataNow();
+    }
+
+    unsubscribeCloud = onSnapshot(
+      ref,
+      (cloudSnapshot) => {
+        if (!cloudSnapshot.exists()) return;
+        applyCloudData(cloudSnapshot.data());
+      },
+      (error) => {
+        console.error(error);
+        setSyncStatus("Error de sincronizacion");
+        showToast("Firestore no ha podido sincronizar.");
+      }
+    );
+
+    setSyncStatus("Sincronizado");
+  } catch (error) {
+    console.error(error);
+    setSyncStatus("Error de sincronizacion");
+    showToast("No he podido conectar con Firestore.");
+  }
+}
+
+function applyCloudData(data) {
+  applyingCloudData = true;
+  state.foods = normalizeFoods(data.foods);
+  state.entries = normalizeEntries(data.entries);
+  state.goals = normalizeGoals(data.goals);
+  persistLocalSnapshot();
+  syncGoalForm();
+  renderFoodOptions();
+  render();
+  setSyncStatus("Sincronizado");
+  applyingCloudData = false;
 }
 
 function render() {
@@ -196,6 +330,21 @@ function render() {
   renderSelectedFood();
   renderSummary();
   renderEntries();
+  renderAuth();
+}
+
+function renderAuth() {
+  const user = state.user;
+  elements.signInButton.hidden = Boolean(user);
+  elements.signOutButton.hidden = !user;
+  elements.userName.textContent = user?.displayName || user?.email || "Modo local";
+  elements.userAvatar.textContent = getAvatarText(user);
+  elements.syncStatus.textContent = state.syncStatus;
+}
+
+function setSyncStatus(status) {
+  state.syncStatus = status;
+  elements.syncStatus.textContent = status;
 }
 
 function renderFoodOptions(selectedId = elements.foodSelect.value) {
@@ -363,11 +512,75 @@ function getDayEntries() {
   return state.entries[state.date] || [];
 }
 
+function persistFoods() {
+  writeStorage(STORAGE.foods, state.foods);
+  queueCloudSave();
+}
+
+function persistGoals() {
+  writeStorage(STORAGE.goals, state.goals);
+  queueCloudSave();
+}
+
 function persistEntries() {
   if (state.entries[state.date]?.length === 0) {
     delete state.entries[state.date];
   }
   writeStorage(STORAGE.entries, state.entries);
+  queueCloudSave();
+}
+
+function persistLocalSnapshot() {
+  writeStorage(STORAGE.foods, state.foods);
+  writeStorage(STORAGE.entries, state.entries);
+  writeStorage(STORAGE.goals, state.goals);
+}
+
+function queueCloudSave() {
+  if (applyingCloudData || !state.user) return;
+  clearTimeout(cloudSaveTimer);
+  setSyncStatus("Guardando...");
+  cloudSaveTimer = setTimeout(saveCloudDataNow, 650);
+}
+
+async function saveCloudDataNow() {
+  if (!state.user) return;
+  try {
+    await setDoc(
+      userDataRef(state.user.uid),
+      {
+        foods: state.foods,
+        entries: state.entries,
+        goals: state.goals,
+        updatedAt: serverTimestamp()
+      },
+      { merge: true }
+    );
+    setSyncStatus("Sincronizado");
+  } catch (error) {
+    console.error(error);
+    setSyncStatus("Error de sincronizacion");
+    showToast("No se pudo guardar en la nube.");
+  }
+}
+
+function userDataRef(uid) {
+  return doc(db, "users", uid, "diet", "state");
+}
+
+function normalizeFoods(foods) {
+  return Array.isArray(foods) && foods.length ? foods : DEFAULT_FOODS;
+}
+
+function normalizeEntries(entries) {
+  return entries && typeof entries === "object" && !Array.isArray(entries) ? entries : {};
+}
+
+function normalizeGoals(goals) {
+  return {
+    ...DEFAULT_GOALS,
+    ...(goals && typeof goals === "object" ? goals : {})
+  };
 }
 
 function shiftDate(delta) {
@@ -424,7 +637,11 @@ function createId(prefix) {
   return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
-let toastTimer;
+function getAvatarText(user) {
+  const source = user?.displayName || user?.email || "Local";
+  return source.trim().charAt(0).toUpperCase();
+}
+
 function showToast(message) {
   clearTimeout(toastTimer);
   elements.toast.textContent = message;
