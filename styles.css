@@ -1,0 +1,728 @@
+:root {
+  color-scheme: light;
+  --bg: #f6f7f2;
+  --surface: #ffffff;
+  --surface-strong: #fdfaf2;
+  --ink: #17201a;
+  --muted: #69736e;
+  --line: #dfe5dc;
+  --green: #1f8a5f;
+  --green-soft: #dff3e8;
+  --blue: #2777b8;
+  --blue-soft: #dbeefa;
+  --coral: #c9553e;
+  --coral-soft: #fde4dc;
+  --gold: #bf812d;
+  --gold-soft: #faedcf;
+  --shadow: 0 22px 70px rgba(23, 32, 26, 0.12);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  background: var(--bg);
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  color: var(--ink);
+  background:
+    linear-gradient(135deg, rgba(31, 138, 95, 0.12), transparent 34%),
+    linear-gradient(315deg, rgba(39, 119, 184, 0.1), transparent 42%),
+    var(--bg);
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+svg {
+  display: block;
+}
+
+.app-shell {
+  width: min(1440px, 100%);
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 88px;
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
+}
+
+.brand-block,
+.date-cluster,
+.panel-heading,
+.macro-meter > div:first-child,
+.selected-food,
+.custom-food summary {
+  display: flex;
+  align-items: center;
+}
+
+.brand-block {
+  gap: 14px;
+}
+
+.brand-mark {
+  display: grid;
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: 8px;
+  color: #0f6042;
+  background: var(--green-soft);
+}
+
+.brand-mark svg {
+  width: 30px;
+  height: 30px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.eyebrow {
+  margin: 0 0 3px;
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 0;
+  font-size: clamp(1.55rem, 1.15rem + 1.2vw, 2.25rem);
+  line-height: 1;
+}
+
+h2 {
+  margin-bottom: 0;
+  font-size: 1.18rem;
+  line-height: 1.2;
+}
+
+.date-cluster {
+  gap: 10px;
+}
+
+.date-field,
+.field {
+  display: grid;
+  gap: 7px;
+}
+
+.date-field span,
+.field span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.date-field input,
+.field input,
+.field select {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  background: #fff;
+  outline: none;
+  padding: 0 12px;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.field select {
+  appearance: none;
+  padding-right: 40px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: calc(100% - 18px) 19px, calc(100% - 12px) 19px;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+}
+
+.date-field input:focus,
+.field input:focus,
+.field select:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 4px rgba(31, 138, 95, 0.14);
+}
+
+.icon-button,
+.primary-button,
+.secondary-button,
+.ghost-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 8px;
+  font-weight: 800;
+  transition: transform 150ms ease, filter 150ms ease, background 150ms ease;
+}
+
+.icon-button {
+  width: 44px;
+  height: 44px;
+  color: var(--ink);
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+}
+
+.icon-button svg,
+.primary-button svg,
+.secondary-button svg,
+.ghost-button svg,
+.custom-food summary svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.2;
+}
+
+.primary-button,
+.secondary-button,
+.ghost-button {
+  min-height: 44px;
+  padding: 0 16px;
+}
+
+.primary-button {
+  color: #fff;
+  background: var(--green);
+}
+
+.secondary-button {
+  color: #0f6042;
+  background: var(--green-soft);
+}
+
+.ghost-button {
+  color: var(--coral);
+  background: var(--coral-soft);
+}
+
+.icon-button:hover,
+.primary-button:hover,
+.secondary-button:hover,
+.ghost-button:hover {
+  filter: brightness(0.98);
+  transform: translateY(-1px);
+}
+
+.dashboard {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.95fr) minmax(360px, 1.35fr) minmax(300px, 0.9fr);
+  grid-template-areas:
+    "summary logger log"
+    "macros logger log"
+    "goals logger log";
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.summary-panel,
+.macro-panel,
+.logger-panel,
+.log-panel,
+.goals-panel {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 14px 44px rgba(23, 32, 26, 0.08);
+}
+
+.summary-panel {
+  grid-area: summary;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  min-height: 184px;
+  padding: 20px;
+}
+
+.summary-copy h2 {
+  font-size: clamp(2.2rem, 4vw, 4rem);
+  line-height: 0.95;
+}
+
+.summary-copy p:last-child {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-weight: 750;
+}
+
+.calorie-ring {
+  position: relative;
+  flex: 0 0 132px;
+  width: 132px;
+  height: 132px;
+}
+
+.calorie-ring svg {
+  width: 132px;
+  height: 132px;
+  transform: rotate(-90deg);
+}
+
+.ring-track,
+.ring-progress {
+  fill: none;
+  stroke-width: 13;
+}
+
+.ring-track {
+  stroke: #e9eee6;
+}
+
+.ring-progress {
+  stroke: var(--green);
+  stroke-linecap: round;
+  stroke-dasharray: 339.29;
+  stroke-dashoffset: 339.29;
+  transition: stroke-dashoffset 250ms ease, stroke 250ms ease;
+}
+
+.calorie-ring > div {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+}
+
+.calorie-ring strong {
+  font-size: 1.42rem;
+}
+
+.calorie-ring span {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.macro-panel {
+  grid-area: macros;
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+}
+
+.macro-meter {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 8px;
+  background: var(--surface-strong);
+}
+
+.macro-meter > div:first-child {
+  justify-content: space-between;
+}
+
+.macro-meter span,
+.macro-meter small {
+  color: var(--muted);
+  font-weight: 750;
+}
+
+.macro-meter strong {
+  font-size: 1.5rem;
+}
+
+.meter-track {
+  overflow: hidden;
+  height: 10px;
+  border-radius: 999px;
+  background: #e8eee9;
+}
+
+.meter-track span {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  transition: width 250ms ease;
+}
+
+.protein .meter-track span {
+  background: var(--blue);
+}
+
+.carbs .meter-track span {
+  background: var(--gold);
+}
+
+.fat .meter-track span {
+  background: var(--coral);
+}
+
+.logger-panel {
+  grid-area: logger;
+  padding: 18px;
+}
+
+.log-panel {
+  grid-area: log;
+  padding: 18px;
+}
+
+.goals-panel {
+  grid-area: goals;
+  padding: 18px;
+}
+
+.panel-heading {
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.meal-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  min-height: 44px;
+  padding: 5px;
+  border-radius: 8px;
+  background: #eef2ec;
+}
+
+.meal-tab {
+  min-width: 0;
+  min-height: 34px;
+  border: 0;
+  border-radius: 6px;
+  color: var(--muted);
+  background: transparent;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.meal-tab.is-active {
+  color: var(--ink);
+  background: #fff;
+  box-shadow: 0 5px 14px rgba(23, 32, 26, 0.1);
+}
+
+.add-form {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(90px, 120px) auto;
+  gap: 12px;
+  align-items: end;
+  margin-top: 16px;
+}
+
+.selected-food {
+  gap: 12px;
+  min-height: 74px;
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 8px;
+  background: var(--blue-soft);
+}
+
+.selected-food p,
+.selected-food strong {
+  margin: 0;
+}
+
+.selected-food p {
+  margin-top: 3px;
+  color: #38586f;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.food-dot {
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 65% 34%, #fff 0 12%, transparent 13%),
+    conic-gradient(from 30deg, var(--green), var(--gold), var(--coral), var(--blue), var(--green));
+}
+
+.custom-food {
+  margin-top: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.custom-food summary {
+  justify-content: space-between;
+  min-height: 52px;
+  padding: 0 14px;
+  color: var(--ink);
+  font-weight: 850;
+  list-style: none;
+  cursor: pointer;
+}
+
+.custom-food summary::-webkit-details-marker {
+  display: none;
+}
+
+.custom-food[open] summary svg {
+  transform: rotate(180deg);
+}
+
+.custom-food-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 0 14px 14px;
+}
+
+.custom-food-form .secondary-button {
+  grid-column: 1 / -1;
+}
+
+.entry-list {
+  display: grid;
+  gap: 14px;
+}
+
+.meal-group {
+  display: grid;
+  gap: 8px;
+}
+
+.meal-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.79rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.meal-title span:last-child {
+  color: var(--ink);
+}
+
+.entry-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  min-height: 66px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.entry-main {
+  min-width: 0;
+}
+
+.entry-main strong,
+.entry-main span {
+  display: block;
+}
+
+.entry-main strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.entry-main span {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.delete-entry {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  color: var(--coral);
+  background: var(--coral-soft);
+}
+
+.delete-entry svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.2;
+}
+
+.empty-state {
+  display: grid;
+  min-height: 260px;
+  place-items: center;
+  border: 1px dashed #cbd6cc;
+  border-radius: 8px;
+  color: var(--muted);
+  text-align: center;
+  font-weight: 750;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.goal-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.goal-form .secondary-button {
+  grid-column: 1 / -1;
+}
+
+.toast {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 20;
+  max-width: min(360px, calc(100vw - 32px));
+  padding: 12px 14px;
+  border-radius: 8px;
+  color: #fff;
+  background: #17201a;
+  box-shadow: var(--shadow);
+  font-weight: 750;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(12px);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.toast.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (max-width: 1120px) {
+  .dashboard {
+    grid-template-columns: minmax(280px, 0.85fr) minmax(360px, 1.15fr);
+    grid-template-areas:
+      "summary logger"
+      "macros logger"
+      "goals log";
+  }
+}
+
+@media (max-width: 820px) {
+  .app-shell {
+    padding: 14px;
+  }
+
+  .topbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .date-cluster {
+    justify-content: space-between;
+  }
+
+  .date-field {
+    flex: 1;
+  }
+
+  .dashboard {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "summary"
+      "macros"
+      "logger"
+      "log"
+      "goals";
+  }
+
+  .summary-panel {
+    min-height: 160px;
+  }
+}
+
+@media (max-width: 620px) {
+  .topbar,
+  .summary-panel,
+  .logger-panel,
+  .log-panel,
+  .goals-panel {
+    padding: 14px;
+  }
+
+  .summary-panel {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .calorie-ring {
+    align-self: center;
+  }
+
+  .meal-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .add-form,
+  .custom-food-form,
+  .goal-form {
+    grid-template-columns: 1fr;
+  }
+
+  .primary-button,
+  .secondary-button,
+  .ghost-button {
+    width: 100%;
+  }
+
+  .panel-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
