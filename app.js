@@ -4,6 +4,7 @@ import {
   getRedirectResult,
   GoogleAuthProvider,
   onAuthStateChanged,
+  signInWithPopup,
   signInWithRedirect,
   signOut
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
@@ -67,7 +68,9 @@ const STORAGE = {
   foods: "niveldieta.foods",
   entries: "niveldieta.entries",
   goals: "niveldieta.goals",
-  date: "niveldieta.date"
+  date: "niveldieta.date",
+  localDirty: "niveldieta.localDirty",
+  lastCloudUid: "niveldieta.lastCloudUid"
 };
 
 const state = {
@@ -271,8 +274,16 @@ function initAuth() {
 async function signInWithGoogle() {
   setSyncStatus("Abriendo Google...");
   try {
-    await signInWithRedirect(auth, googleProvider);
+    await signInWithPopup(auth, googleProvider);
   } catch (error) {
+    if (error.code === "auth/popup-blocked") {
+      await signInWithRedirect(auth, googleProvider);
+      return;
+    }
+    if (error.code === "auth/popup-closed-by-user" || error.code === "auth/cancelled-popup-request") {
+      setSyncStatus("Entra para sincronizar");
+      return;
+    }
     console.error(error);
     setSyncStatus("Error de acceso");
     showToast("No se pudo iniciar sesion con Google.");
@@ -285,8 +296,15 @@ async function connectCloudData(user) {
 
   try {
     const snapshot = await getDoc(ref);
+    const localData = createDataSnapshot();
+    const shouldMergeLocal = shouldImportLocalData(user.uid, snapshot.exists());
+
     if (snapshot.exists()) {
-      applyCloudData(snapshot.data());
+      const nextData = shouldMergeLocal ? mergeDietData(snapshot.data(), localData) : snapshot.data();
+      applyCloudData(nextData);
+      if (shouldMergeLocal) {
+        await saveCloudDataNow();
+      }
     } else {
       await saveCloudDataNow();
     }
@@ -305,6 +323,8 @@ async function connectCloudData(user) {
     );
 
     setSyncStatus("Sincronizado");
+    writeStorage(STORAGE.localDirty, false);
+    writeStorage(STORAGE.lastCloudUid, user.uid);
   } catch (error) {
     console.error(error);
     setSyncStatus("Error de sincronizacion");
@@ -514,11 +534,13 @@ function getDayEntries() {
 
 function persistFoods() {
   writeStorage(STORAGE.foods, state.foods);
+  markLocalDirty();
   queueCloudSave();
 }
 
 function persistGoals() {
   writeStorage(STORAGE.goals, state.goals);
+  markLocalDirty();
   queueCloudSave();
 }
 
@@ -527,6 +549,7 @@ function persistEntries() {
     delete state.entries[state.date];
   }
   writeStorage(STORAGE.entries, state.entries);
+  markLocalDirty();
   queueCloudSave();
 }
 
@@ -549,14 +572,14 @@ async function saveCloudDataNow() {
     await setDoc(
       userDataRef(state.user.uid),
       {
-        foods: state.foods,
-        entries: state.entries,
-        goals: state.goals,
+        ...createDataSnapshot(),
         updatedAt: serverTimestamp()
       },
       { merge: true }
     );
     setSyncStatus("Sincronizado");
+    writeStorage(STORAGE.localDirty, false);
+    writeStorage(STORAGE.lastCloudUid, state.user.uid);
   } catch (error) {
     console.error(error);
     setSyncStatus("Error de sincronizacion");
@@ -566,6 +589,68 @@ async function saveCloudDataNow() {
 
 function userDataRef(uid) {
   return doc(db, "users", uid, "diet", "state");
+}
+
+function createDataSnapshot() {
+  return {
+    foods: state.foods,
+    entries: state.entries,
+    goals: state.goals
+  };
+}
+
+function shouldImportLocalData(uid, cloudExists) {
+  if (!cloudExists) return true;
+  if (readStorage(STORAGE.localDirty, false)) return true;
+  return readStorage(STORAGE.lastCloudUid, "") !== uid && hasLocalDietData();
+}
+
+function hasLocalDietData() {
+  return (
+    Object.values(state.entries).some((entries) => Array.isArray(entries) && entries.length > 0) ||
+    state.foods.some((food) => food.custom) ||
+    JSON.stringify(state.goals) !== JSON.stringify(DEFAULT_GOALS)
+  );
+}
+
+function mergeDietData(cloudData, localData) {
+  const cloud = {
+    foods: normalizeFoods(cloudData.foods),
+    entries: normalizeEntries(cloudData.entries),
+    goals: normalizeGoals(cloudData.goals)
+  };
+  const local = {
+    foods: normalizeFoods(localData.foods),
+    entries: normalizeEntries(localData.entries),
+    goals: normalizeGoals(localData.goals)
+  };
+
+  return {
+    foods: mergeFoods(cloud.foods, local.foods),
+    entries: mergeEntries(cloud.entries, local.entries),
+    goals: JSON.stringify(local.goals) !== JSON.stringify(DEFAULT_GOALS) ? local.goals : cloud.goals
+  };
+}
+
+function mergeFoods(cloudFoods, localFoods) {
+  const foods = new Map();
+  [...DEFAULT_FOODS, ...cloudFoods, ...localFoods].forEach((food) => foods.set(food.id, food));
+  return [...foods.values()].sort((a, b) => a.name.localeCompare(b.name, "es"));
+}
+
+function mergeEntries(cloudEntries, localEntries) {
+  const dates = new Set([...Object.keys(cloudEntries), ...Object.keys(localEntries)]);
+  return [...dates].reduce((merged, date) => {
+    const entriesById = new Map();
+    [...(cloudEntries[date] || []), ...(localEntries[date] || [])].forEach((entry) => {
+      entriesById.set(entry.id, entry);
+    });
+    const entries = [...entriesById.values()];
+    if (entries.length) {
+      merged[date] = entries;
+    }
+    return merged;
+  }, {});
 }
 
 function normalizeFoods(foods) {
@@ -628,6 +713,12 @@ function readStorage(key, fallback) {
 
 function writeStorage(key, value) {
   localStorage.setItem(key, JSON.stringify(value));
+}
+
+function markLocalDirty() {
+  if (!state.user && !applyingCloudData) {
+    writeStorage(STORAGE.localDirty, true);
+  }
 }
 
 function createId(prefix) {
