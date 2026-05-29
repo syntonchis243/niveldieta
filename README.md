@@ -4,7 +4,7 @@ Aplicacion local para registrar calorias, proteina, carbohidratos y grasas por d
 
 ## Abrir
 
-Abre `index.html` en el navegador. La informacion se guarda en `localStorage`, asi que no hace falta servidor ni instalacion.
+Abre `https://syntonchis243.github.io/niveldieta/` en el navegador. La informacion se guarda en `localStorage`, asi que no hace falta servidor ni instalacion.
 
 ## Incluye
 
